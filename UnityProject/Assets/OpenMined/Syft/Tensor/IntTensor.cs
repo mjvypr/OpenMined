@@ -5,6 +5,7 @@ using OpenMined.Network.Controllers;
 using System.Collections.Generic;
 using OpenMined.Syft.Tensor.Factories;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OpenMined.Syft.Tensor
 {
@@ -159,6 +160,37 @@ namespace OpenMined.Syft.Tensor
             IntTensor result = factory.Create(this.shape);
             result.Data = data.AsParallel().Select(x => Math.Abs (x)).ToArray();
             return result;
+        }
+
+        public IntTensor Sign(bool inline = false)
+        {
+            IntTensor result = factory.Create(this.shape);
+            if(dataOnGpu)
+            {
+                throw new NotImplementedException();
+            }
+            if(!inline)
+            {
+           
+                var nCpu = SystemInfo.processorCount;
+                Parallel.For(0, nCpu, workerId =>
+                {
+                   var max = size * (workerId + 1) / nCpu;
+                   for (var i = size * workerId / nCpu; i < max; i++)
+                   {
+                       if(this[i] < 0)
+                       {
+                        result.Data[i] = -1;
+                       }
+                       else 
+                       {
+                        result.Data[i] = 1;
+                       }
+                   }
+               });
+           
+           }
+           return result;
         }
 
         public IntTensor Add(IntTensor x, bool inline = false)
@@ -363,7 +395,12 @@ namespace OpenMined.Syft.Tensor
                     }
                     return "param not found or not configured with a getter";
                 }
-                    
+                
+                case "sign":
+                {
+                    var result = this.Sign();
+                    return result.id + "";
+                }    
                 case "to_numpy":
                 {
                     if (DataOnGpu)
