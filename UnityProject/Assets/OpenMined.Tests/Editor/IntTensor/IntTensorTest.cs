@@ -294,7 +294,6 @@ namespace OpenMined.Tests.Editor.IntTensorTests
             }
         }
 
-
         [Test]
         public void Sign()
         {
