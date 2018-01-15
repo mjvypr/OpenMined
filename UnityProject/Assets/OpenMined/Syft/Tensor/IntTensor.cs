@@ -171,25 +171,8 @@ namespace OpenMined.Syft.Tensor
             }
             if(!inline)
             {
-           
-                var nCpu = SystemInfo.processorCount;
-                Parallel.For(0, nCpu, workerId =>
-                {
-                   var max = size * (workerId + 1) / nCpu;
-                   for (var i = size * workerId / nCpu; i < max; i++)
-                   {
-                       if(this[i] < 0)
-                       {
-                        result.Data[i] = -1;
-                       }
-                       else 
-                       {
-                        result.Data[i] = 1;
-                       }
-                   }
-               });
-           
-           }
+           result.Data = data.AsParallel().Select(x => (int) Math.Abs(x)/x).ToArray();
+            }    
            return result;
         }
 
